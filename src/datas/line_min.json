@@ -1,0 +1,11 @@
+[
+  {"fromCity": "\u5317\u4eac", "toCity": "\u4e0a\u6d77"},
+  {"fromCity": "\u5317\u4eac", "toCity": "\u5927\u8fde"},
+  {"fromCity": "\u5317\u4eac", "toCity": "\u5305\u5934"},
+  {"fromCity": "\u5317\u4eac", "toCity": "\u6210\u90fd"},
+  {"fromCity": "\u5927\u8fde", "toCity": "\u5317\u4eac"},
+  {"fromCity": "\u8fea\u5e86", "toCity": "\u897f\u53cc\u7248\u7eb3"},
+  {"fromCity": "\u5927\u8fde", "toCity": "\u6210\u90fd"},
+  {"fromCity": "\u5927\u8fde", "toCity": "\u53a6\u95e8"},
+  {"fromCity": "\u5927\u8fde", "toCity": "\u676d\u5dde"}
+]
