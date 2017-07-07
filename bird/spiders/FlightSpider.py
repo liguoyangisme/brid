@@ -3,11 +3,16 @@ import scrapy
 import json
 from urllib import quote
 import time
-from bird.items import FlightItem
+
+import sys
+from items import FlightItem
 
 # 航班价格爬虫
-from bird.utils.DateUtils import DateUtils
+from utils.DateUtils import DateUtils
+from pymongo import MongoClient
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 class FlightSpider(scrapy.spiders.Spider):
     name = "flight"
@@ -16,7 +21,7 @@ class FlightSpider(scrapy.spiders.Spider):
     # 开始方法
     def start_requests(self):
         # 读取航线列表
-        file = open("datas/line.json")
+        file = open("datas/line_min.json")
         # 转换航线列表
         lines = json.load(file)
 
@@ -46,12 +51,25 @@ class FlightSpider(scrapy.spiders.Spider):
     # 提取JSON
     def json_parse(self, response):
 
-        print "处理：%s" % response.url
         # 解析JSON
         data = json.loads(response.body, encoding='gb2312')
 
         def filter_around(filght):
             return filght['xpsm'] == 0
+
+        # Mongo连接
+        client = MongoClient("localhost", 27018)
+        db = client.bird
+        collection = db.flight
+        if data['fis'].__len__() == 0:
+            print "返回空 %s" % response.meta["proxy"]
+            return scrapy.Request(
+                    response.url
+                    ,
+                    callback=self.list_parse
+                )
+        else:
+            print "返回正常 %s" % response.meta["proxy"]
 
         # 过滤出发地周边航班
         for fl in filter(filter_around, data['fis']):
@@ -102,7 +120,8 @@ class FlightSpider(scrapy.spiders.Spider):
             # 机场建设费
             item['tax'] = fl['tax']
 
-            yield item
+            collection.insert(item)
+            # yield item
 
     # 未来90天内日期列表
     def rangeDate(self):

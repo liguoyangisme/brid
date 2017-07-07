@@ -78,7 +78,7 @@ class HttpProxyMiddleware(object):
         """
         从网上抓取新的代理添加到代理列表中
         """
-        logger.info("extending proxyes using fetch_free_proxyes.py")
+        logger.info("extending proxyes using FreeProxy.py")
         new_proxyes = fetch_free_proxyes.fetch_all()
         logger.info("new proxyes: %s" % new_proxyes)
         self.last_fetch_proxy_time = datetime.now()

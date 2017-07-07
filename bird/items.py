@@ -19,6 +19,8 @@ class LineItem(Item):
 # 航班价格信息
 class FlightItem(Item):
 
+    # Mongo主键
+    _id = Field()
     # 获得日期
     findDate = Field()
     # 获得时间

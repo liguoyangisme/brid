@@ -135,31 +135,51 @@ def fetch_proxy360():
     except Exception as e:
         logger.warning("fail to fetch from httpdaili: %s" % e)
     return proxyes
-    
+
+def fetch_kuaidaili():
+    proxyes = []
+    try:
+        url = "http://www.kuaidaili.com/free/inha/%d/" % 1
+        soup = get_soup(url)
+        trs = soup.findAll("div", attrs={"id":"list"})[0].find_all("tr")
+        for i in range(1, len(trs)):
+            try:
+                td = trs[i].findAll("td")
+                ip = td[0].text.strip()
+                port = td[1].text.strip()
+                type = td[2].text.strip()
+                if type == u"高匿名":
+                    proxyes.append("%s:%s" % (ip, port))
+            except:
+                pass
+    except Exception as e:
+        logger.warning("fail to fetch from kuaidaili: %s" % e)
+    return proxyes
 """
 代理检查
 """
 def check(proxy):
     import urllib2
     url = "http://www.ip181.com/"
-    # proxy_handler = urllib2.ProxyHandler({'http': "http://" + proxy})
-    # opener = urllib2.build_opener(proxy_handler,urllib2.HTTPHandler)
-    # urllib2.install_opener(opener)
 
     request = urllib2.Request(url)
     request.set_proxy(proxy,"http")
     request.add_header("User-Agent",
                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.99 Safari/537.36")
     try:
-
-        response = urllib2.urlopen(request,timeout=2)
-        html = response.read()
-        if response.code == 200 and html.find("Unauthorized")==-1:
-            logger.debug("success agent %s" % proxy)
-            return True
-        else:
-            logger.debug("fail agent %s" % proxy)
-            return False
+        # 连续三次请求可用，才可以认证为可用代理
+        i = 0
+        while i < 3:
+            response = urllib2.urlopen(request,timeout=2)
+            html = response.read()
+            if html.find("i.ip181.com")!=-1 and response.code == 200 and html.find("Unauthorized")==-1:
+                pass
+            else:
+                logger.debug("fail agent %s" % proxy)
+                return False
+            i += 1
+        logger.debug("success agent %s" % proxy)
+        return True
     except Exception:
         logger.debug("fail agent %s" % proxy)
         return False
@@ -170,31 +190,40 @@ def check(proxy):
 def fetch_all():
     valid_proxyes = []
     # 代理列表
-    file_name = "proxy.txt"
+    file_name = "datas/proxy.txt"
 
-    if os.path.exists(file_name):
-        # 读取代理列表
-        file = open(file_name, "r")
-        for line in file.readlines():
-            proxy = line.strip()
-            if check(proxy):
-                valid_proxyes.append(proxy)
+    while valid_proxyes.__len__() <= 3:
+        logger.info("搜索验证代理")
 
-    else:
+        if os.path.exists(file_name):
+            # 读取代理列表
+            file = open(file_name, "r")
+            for line in file.readlines():
+                proxy = line.strip()
+                if check(proxy):
+                    valid_proxyes.append(proxy)
 
-        # 搜索代理
-        proxyes = []
-        proxyes += fetch_mimvp()
-        proxyes += fetch_xici()
-        proxyes += fetch_httpdaili()
-        proxyes += fetch_proxy360()
+            # 删除文件
+            if valid_proxyes.__len__() <= 3:
+                os.remove(file_name)
 
-        # 验证&保存代理
-        file = open(file_name, "w")
-        for p in proxyes:
-            if check(p):
-                valid_proxyes.append(p)
-                file.write(p+'\n')
+        else:
+
+            # 搜索代理
+            proxyes = []
+            proxyes += fetch_kuaidaili()
+            proxyes += fetch_mimvp()
+            proxyes += fetch_xici()
+            proxyes += fetch_httpdaili()
+            proxyes += fetch_proxy360()
+
+
+            # 验证&保存代理
+            file = open(file_name, "w")
+            for p in proxyes:
+                if check(p):
+                    valid_proxyes.append(p)
+                    file.write(p+'\n')
 
     logger.info("可用代理数：%s" % valid_proxyes.__len__())
     return valid_proxyes
