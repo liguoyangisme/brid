@@ -1,5 +1,5 @@
 from scrapy.cmdline import execute
 
-# execute("scrapy crawl line -o line.json".split())
+if __name__ == "__main__":
 
-execute("scrapy crawl flight".split())
+    execute("scrapy crawl ctrip".split())

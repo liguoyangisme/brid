@@ -45,9 +45,18 @@ class MongoObject(object):
     def count(self):
         return self.table.count()
 
-    """查询"""
+    """记录数量"""
+
+    def count(self, query):
+        return self.table.count(query)
+
+    """查询(返回游标)"""
     def find(self, query):
         return self.table.find(query)
+
+    """查询(返回结果)"""
+    def findRs(self, query):
+        return [item for item in self.table.find(query)]
 
     """查询一条"""
     def findOne(self, query):
@@ -55,7 +64,13 @@ class MongoObject(object):
 
     """插入"""
     def save(self, document):
-        self.table.insert_one(document)
+        new_id = self.table.insert_one(document).inserted_id
+        document["_id"] = new_id
+        return document
+
+    """替换"""
+    def replace(self, document):
+        self.table.replace_one(document)
 
     """批量插入"""
     def saveBatch(self, documents):
@@ -63,7 +78,7 @@ class MongoObject(object):
 
     """更新"""
     def update(self, query, document):
-        self.table.update_one(query,document)
+        self.table.update_one(query,{"$set":document})
 
     """更新多条"""
     def updateMany(self, query, document):
@@ -79,5 +94,5 @@ class MongoObject(object):
 
     """关闭连接"""
     def close(self):
-        self.client.close()
+        if self.client != None: self.client.close()
 
